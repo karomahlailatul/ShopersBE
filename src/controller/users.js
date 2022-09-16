@@ -9,29 +9,31 @@ const createError = require('http-errors')
 const UserController = {
   registerAccount: async (req, res) => {
     try {
-      const { username, email, password, name } = req.body;
+      const { name, email, password, role } = req.body;
       const checkEmail = await usersModel.findEmail(email)
-      const checkUsername = await usersModel.findUsername(username)
 
       try {
-        if (checkEmail.rowCount == 1 && checkUsername.rowCount == 0) throw 'Email is already used';
-        if (checkEmail.rowCount == 0 && checkUsername.rowCount == 1) throw 'Username is already used';
-        if (checkEmail.rowCount == 1 && checkUsername.rowCount == 1) throw 'Email and Username is already used';
+        if (checkEmail.rowCount == 1) throw 'Email is already used';
       } catch (error) {
         return (commonHelper.response(res, null, 403, error))
       }
 
       const saltRounds = 10;
       const passwordHash = bcrypt.hashSync(password, saltRounds);
+      // const passwordHash = password;
       const id = uuidv4().toLocaleLowerCase();
+
+      const PORT = process.env.PORT
+      const DB_HOST = process.env.DB_HOST
+      const picture = `http://${DB_HOST}:${PORT}/upload/default.png`
 
       const data = {
         id,
-        email,
-        username,
-        passwordHash,
         name,
-        role: 'user'
+        email,
+        passwordHash,
+        picture,
+        role
       }
 
       await usersModel.create(data)
@@ -50,7 +52,7 @@ const UserController = {
       const { email, password } = req.body
       const { rows: [user] } = await usersModel.findEmail(email)
       if (!user) {
-        return commonHelper.response(res, null, 403, 'Email is invalid')
+        return commonHelper.response(res, null, 403, 'User Not Registed')
       }
       const isValidPassword = bcrypt.compareSync(password, user.password)
       console.log(isValidPassword);
@@ -89,6 +91,7 @@ const UserController = {
         typeof (queryUpdate) === 'string' &&
         typeof (queryDelete) === 'undefined'
       ) {
+
         const PORT = process.env.PORT
         const DB_HOST = process.env.DB_HOST
         const filepicture = req.file.filename;
@@ -104,6 +107,14 @@ const UserController = {
           role
         } = req.body;
 
+
+        const checkUsername = await usersModel.findUsername(username)
+        try {
+          if (checkUsername.rowCount == 1) throw 'Username is already used';
+        } catch (error) {
+          return (commonHelper.response(res, null, 403, error))
+        }
+
         const genderLowerCase = gender.toLowerCase()
 
         await usersModel.updateAccount(
@@ -116,7 +127,6 @@ const UserController = {
           picture,
           shipping_address,
           role
-
         );
 
         commonHelper.response(res, null, 201, "Profile has been updated")

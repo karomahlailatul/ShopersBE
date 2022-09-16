@@ -19,7 +19,7 @@ const paymentController = {
       const sortby = req.query.sortby || ('created_on');
       const sort = req.query.sort || 'asc';
       const result = await paymentModel.selectPagination({ limit, offset, sortby, sort, querysearch });
-      const totalData = parseInt((await paymentModel.selectAll()).rowCount);
+      const totalData = parseInt(result.rowCount);
       const totalPage = Math.ceil(totalData / limit);
       const pagination = {
         currentPage: page,

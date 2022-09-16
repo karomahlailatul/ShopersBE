@@ -2,20 +2,20 @@
 const createError = require('http-errors')
 
 const validateRegister = (req, res, next) => {
-  const { username, email, password, name } = req.body
-  const checkInputUsername = new RegExp(/^[a-zA-Z0-9_-]{5,8}$/)
+  const { email, password } = req.body
+  // const checkInputUsername = new RegExp(/^[a-zA-Z0-9_-]{5,8}$/)
   const checkInputEmail = new RegExp(/^([a-zA-Z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/)
   const checkInputPassword = new RegExp(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,12}$/)
-  const checkInputName = new RegExp(/^[A-Za-z\s]{3,100}$/)
+  // const checkInputName = new RegExp(/^[A-Za-z\s]{3,100}$/)
   try {
-    if (username === '') throw ('Username must filled')
-    if (!checkInputUsername.test(username)) throw ('Username minimum five characters and maximum eight characters, minimum at least one letter and one number')
+    // if (username === '') throw ('Username must filled')
+    // if (!checkInputUsername.test(username)) throw ('Username minimum five characters and maximum eight characters, minimum at least one letter and one number')
     if (email === '') throw ('Email must filled')
     if (!checkInputEmail.test(email)) throw ('Email had not valid for register')
     if (password === '') throw ('Password must filled')
     if (!checkInputPassword.test(password)) throw ('Password minimum eight characters and maximum twelve characters, minimum at least one letter, one number, and one special character')
-    if (name === '') throw ('Name must filled')
-    if (!checkInputName.test(name)) throw ('Name only used characters')
+    // if (name === '') throw ('Name must filled')
+    // if (!checkInputName.test(name)) throw ('Name only used characters')
 
   } catch (error) {
     return res.send(createError(400, error));
@@ -33,7 +33,7 @@ const validateLogin = (req, res, next) => {
     if (password === '') throw ('Password must filled')
     if (!checkInputPassword.test(password)) throw ('Password minimum eight characters and maximum twelve characters, minimum at least one letter, one number, and one special character')
     if (email === '') throw ('Email must filled')
-    if (!checkInputEmail.test(email)) throw ('Email had not valid for register')
+    if (!checkInputEmail.test(email)) throw ('Email had not valid for login')
 
   } catch (error) {
     return res.send(createError(400, error));

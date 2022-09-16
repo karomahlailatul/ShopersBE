@@ -9,9 +9,9 @@ const findUsername = (username) => {
 }
 
 const create = (data) => {
-  const { id, username, email, passwordHash, name, role } = data
+  const { id, email, passwordHash, name, picture, role } = data
   return new Promise((resolve, reject) =>
-    Pool.query(`INSERT INTO users(id,username,email,password,name,role) VALUES('${id}','${username}','${email}','${passwordHash}','${name}','${role}')`, (error, result) => {
+    Pool.query(`INSERT INTO users(id,email,password,name,picture,role) VALUES('${id}','${email}','${passwordHash}','${name}','${picture}','${role}')`, (error, result) => {
       if (!error) {
         resolve(result)
       } else {

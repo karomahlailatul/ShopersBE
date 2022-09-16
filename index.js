@@ -29,10 +29,11 @@ app.all('*', (req, res, next) => {
 app.use((err, req, res, next) => {
   const statusCode = err.status
   if (res.status(statusCode)) {
-    res.send(createError(statusCode, err))
+    res.json(createError(statusCode, err))
   }
   next()
 });
+
 
 const host = process.env.DB_HOST;
 const port = process.env.PORT;

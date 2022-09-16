@@ -20,7 +20,7 @@ const transactionController = {
       const sortby = req.query.sortby || ('created_on');
       const sort = req.query.sort || 'asc';
       const result = await transactionModel.selectPagination({ limit, offset, sortby, sort, querysearch });
-      const totalData = parseInt((await transactionModel.selectAll()).rowCount);
+      const totalData = parseInt(result.rowCount);
       const totalPage = Math.ceil(totalData / limit);
       const pagination = {
         currentPage: page,

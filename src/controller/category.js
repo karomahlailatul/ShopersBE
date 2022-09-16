@@ -6,7 +6,7 @@ const categoryController = {
   getPaginationCategory: async (req, res) => {
     try {
       const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 10;
+      const limit = parseInt(req.query.limit) || 1000;
       const offset = (page - 1) * limit;
 
       const search = req.query.search;
@@ -19,7 +19,7 @@ const categoryController = {
       const sortby = req.query.sortby || ('created_on');
       const sort = req.query.sort || 'asc';
       const result = await categoryModel.selectPagination({ limit, offset, sortby, sort, querysearch });
-      const totalData = parseInt((await categoryModel.selectAll()).rowCount);
+      const totalData = parseInt(result.rowCount);
       const totalPage = Math.ceil(totalData / limit);
       const pagination = {
         currentPage: page,

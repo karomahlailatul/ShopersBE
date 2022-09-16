@@ -6,8 +6,8 @@ const { checkInputCategory, checkUpdateCategory, checkDeleteCategory,
 } = require('../middlewares/common');
 
 
-router.get('/', protect, categoryController.getPaginationCategory);
-router.get('/:id', protect, categoryController.getCategory);
+router.get('/', categoryController.getPaginationCategory);
+router.get('/:id', categoryController.getCategory);
 router.post('/', protect, checkInputCategory, categoryController.insertCategory);
 router.put('/:id', protect, checkUpdateCategory, categoryController.updateCategory);
 router.delete('/:id', protect, checkDeleteCategory, categoryController.deleteCategory);
