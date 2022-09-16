@@ -19,7 +19,7 @@ const productController = {
         // querysearch = ` where name  like '%${search.toLowerCase()}%' `;
         querysearch = ` where product.name ilike '%${search}%' `;
       }
-      console.log(querysearch);
+      // console.log(querysearch);
       const sortby = req.query.sortby || "created_on";
       const sort = req.query.sort || "desc";
       const result = await productModel.selectPagination({ limit, offset, sortby, sort, querysearch });
@@ -264,7 +264,8 @@ const productController = {
       const sortby = req.query.sortby || "ValueFrequency";
       const sort = req.query.sort || "desc";
       const result = await productModel.selectPaginationPopular({ limit, offset, sortby, sort, querysearch });
-      const totalData = parseInt(result.rowCount);
+      const resultTotal = await productModel.selectPaginationTotal({ querysearch });
+      const totalData = parseInt(resultTotal.rowCount);
       const totalPage = Math.ceil(totalData / limit);
       const pagination = {
         currentPage: page,
@@ -301,7 +302,8 @@ const productController = {
       const sortby = req.query.sortby || "created_on";
       const sort = req.query.sort || "desc";
       const result = await productModel.selectPaginationSeller({ limit, offset, sortby, sort, querysearch });
-      const totalData = parseInt(result.rowCount);
+      const resultTotal = await productModel.selectPaginationTotal({ querysearch });
+      const totalData = parseInt(resultTotal.rowCount);
       const totalPage = Math.ceil(totalData / limit);
       const pagination = {
         currentPage: page,
@@ -326,7 +328,8 @@ const productController = {
       const sortby = req.query.sortby || "created_on";
       const sort = req.query.sort || "desc";
       const result = await productModel.selectPaginationSeller({ limit, offset, sortby, sort, querysearch });
-      const totalData = parseInt(result.rowCount);
+      const resultTotal = await productModel.selectPaginationTotal({ querysearch });
+      const totalData = parseInt(resultTotal.rowCount);
       const totalPage = Math.ceil(totalData / limit);
       const pagination = {
         currentPage: page,
