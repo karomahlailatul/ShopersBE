@@ -188,12 +188,6 @@ EXECUTE PROCEDURE update_updated_on_product();
 
 
 
-
-
-
-
-
-
 create table transaction(
 id 				text 	not null,
 product_id 			text	,

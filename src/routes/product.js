@@ -16,7 +16,13 @@ router.get('/popular', productController.getPaginationProductPopular);
 
 router.get('/', productController.getPaginationProduct);
 router.get('/:id', productController.getProduct);
-router.post('/', protect, upload.single('photo'), productController.insertProduct);
+// router.post('/', protect, upload.single('photo'), productController.insertProduct);
+
+router.post('/', protect, upload.fields(
+    [{ name: "photo", maxCount: 5 }]
+), productController.insertProduct);
+
+
 router.put('/:id', protect, upload.single('photo'), productController.updateProduct);
 router.delete('/:id', protect, productController.deleteProduct);
 

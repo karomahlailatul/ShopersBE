@@ -56,6 +56,7 @@ const productController = {
     }
   },
   insertProduct: async (req, res) => {
+    console.log(req.files)
     try {
       const id = uuidv4().toLocaleLowerCase();
       const PORT = process.env.PORT;
