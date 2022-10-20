@@ -49,7 +49,7 @@ const productController = {
       }
 
       const result = await productModel.selectProduct(id);
-      client.setEx(`product/${id}`, 60 * 60, JSON.stringify(result.rows));
+      // client.setEx(`product/${id}`, 60 * 60, JSON.stringify(result.rows));
       commonHelper.response(res, result.rows, 200, null);
     } catch (error) {
       res.send(createError(404));

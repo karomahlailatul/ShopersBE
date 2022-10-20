@@ -47,7 +47,7 @@ const transactionController = {
       }
 
       const result = await transactionModel.selectTransactionId(id)
-      client.setEx(`transaction/${id}`, 60 * 60, JSON.stringify(result.rows))
+      // client.setEx(`transaction/${id}`, 60 * 60, JSON.stringify(result.rows))
       commonHelper.response(res, result.rows, 200, null);
     } catch (error) {
       res.send(createError(404));
