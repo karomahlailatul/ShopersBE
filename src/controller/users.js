@@ -1,21 +1,22 @@
-const { v4: uuidv4 } = require('uuid');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken')
-const usersModel = require('../models/users')
-const commonHelper = require('../helper/common');
-const authHelper = require('../helper/auth');
-const createError = require('http-errors')
+const { v4: uuidv4 } = require("uuid");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const usersModel = require("../models/users");
+const commonHelper = require("../helper/common");
+const authHelper = require("../helper/auth");
+const createError = require("http-errors");
 
+const { authenticateGoogle, uploadToGoogleDrive, deleteFromGoogleDrive } = require("../middlewares/googleDriveService");
 const UserController = {
   registerAccount: async (req, res) => {
     try {
       const { name, email, password, role } = req.body;
-      const checkEmail = await usersModel.findEmail(email)
+      const checkEmail = await usersModel.findEmail(email);
 
       try {
-        if (checkEmail.rowCount == 1) throw 'Email is already used';
+        if (checkEmail.rowCount == 1) throw "Email is already used";
       } catch (error) {
-        return (commonHelper.response(res, null, 403, error))
+        return commonHelper.response(res, null, 403, error);
       }
 
       const saltRounds = 10;
@@ -23,9 +24,9 @@ const UserController = {
       // const passwordHash = password;
       const id = uuidv4().toLocaleLowerCase();
 
-      const PORT = process.env.PORT
-      const DB_HOST = process.env.DB_HOST
-      const picture = `http://${DB_HOST}:${PORT}/upload/default.png`
+      // const PORT = process.env.PORT
+      // const DB_HOST = process.env.DB_HOST
+      const picture = `https://drive.google.com/thumbnail?id=1xVjzZRWh4Ck1NpBo9GARV9uCz-TVX42K&sz=s1080`;
 
       const data = {
         id,
@@ -33,42 +34,41 @@ const UserController = {
         email,
         passwordHash,
         picture,
-        role
-      }
+        role,
+      };
 
-      await usersModel.create(data)
-        .then(
-          result => commonHelper.response(res, result.rows, 201, "User Created")
-        )
-        .catch(err => res.send(err)
-        )
-
+      await usersModel
+        .create(data)
+        .then((result) => commonHelper.response(res, result.rows, 201, "User Created"))
+        .catch((err) => res.send(err));
     } catch (error) {
       res.send(createError(400));
     }
   },
   loginAccount: async (req, res) => {
     try {
-      const { email, password } = req.body
-      const { rows: [user] } = await usersModel.findEmail(email)
+      const { email, password } = req.body;
+      const {
+        rows: [user],
+      } = await usersModel.findEmail(email);
       if (!user) {
-        return commonHelper.response(res, null, 403, 'User Not Registed')
+        return commonHelper.response(res, null, 403, "User Not Registed");
       }
-      const isValidPassword = bcrypt.compareSync(password, user.password)
+      const isValidPassword = bcrypt.compareSync(password, user.password);
       console.log(isValidPassword);
 
       if (!isValidPassword) {
-        return commonHelper.response(res, null, 403, 'Password is invalid')
+        return commonHelper.response(res, null, 403, "Password is invalid");
       }
-      delete user.password
+      delete user.password;
       const payload = {
         email: user.email,
-        role: user.role
-      }
-      user.token = authHelper.generateToken(payload)
-      user.refreshToken = authHelper.generateRefreshToken(payload)
+        role: user.role,
+      };
+      user.token = authHelper.generateToken(payload);
+      user.refreshToken = authHelper.generateRefreshToken(payload);
 
-      commonHelper.response(res, user, 201, 'Login is Successful')
+      commonHelper.response(res, user, 201, "Login is Successful");
     } catch (error) {
       res.send(createError(400));
     }
@@ -78,64 +78,56 @@ const UserController = {
       const queryUpdate = req.query.update;
       const queryDelete = req.query.delete;
 
-      const email = req.payload.email
-      const { rows: [user] } = await usersModel.findEmail(email)
-      delete user.password
+      const email = req.payload.email;
+      const {
+        rows: [user],
+      } = await usersModel.findEmail(email);
+      delete user.password;
 
-      if (
-        typeof (queryUpdate) === 'undefined' &&
-        typeof (queryDelete) === 'undefined'
-      ) {
-        commonHelper.response(res, user, 200)
-      } else if (
-        typeof (queryUpdate) === 'string' &&
-        typeof (queryDelete) === 'undefined'
-      ) {
+      if (typeof queryUpdate === "undefined" && typeof queryDelete === "undefined") {
+        commonHelper.response(res, user, 200);
+      } else if (typeof queryUpdate === "string" && typeof queryDelete === "undefined") {
+        // const PORT = process.env.PORT
+        // const DB_HOST = process.env.DB_HOST
+        // const filepicture = req.file.filename;
+        // const picture = `http://${DB_HOST}:${PORT}/upload/${filepicture}`
 
-        const PORT = process.env.PORT
-        const DB_HOST = process.env.DB_HOST
-        const filepicture = req.file.filename;
-        const picture = `http://${DB_HOST}:${PORT}/upload/${filepicture}`
+        const { username, name, gender, phone, date_of_birth, shipping_address, role } = req.body;
 
-        const {
-          username,
-          name,
-          gender,
-          phone,
-          date_of_birth,
-          shipping_address,
-          role
-        } = req.body;
-
-
-        const checkUsername = await usersModel.findUsername(username)
+        const checkUsername = await usersModel.findUsername(username);
         try {
-          if (checkUsername.rowCount == 1) throw 'Username is already used';
+          if (checkUsername.rowCount == 1) throw "Username is already used";
         } catch (error) {
-          return (commonHelper.response(res, null, 403, error))
+          return commonHelper.response(res, null, 403, error);
         }
 
-        const genderLowerCase = gender.toLowerCase()
+        const genderLowerCase = gender.toLowerCase();
 
-        await usersModel.updateAccount(
-          email,
-          username,
-          name,
-          genderLowerCase,
-          phone,
-          date_of_birth,
-          picture,
-          shipping_address,
-          role
-        );
+        commonHelper.response(res, null, 201, "Profile has been updated");
 
-        commonHelper.response(res, null, 201, "Profile has been updated")
-      } else if (
-        typeof (queryUpdate) === 'undefined' &&
-        typeof (queryDelete) === 'string'
-      ) {
-        await usersModel.deleteAccount(email)
-        commonHelper.response(res, null, 200, "Account has been deleted")
+        if (req.file) {
+          const auth = authenticateGoogle();
+
+          if (user.picture != null || user.picture != undefined) {
+            await deleteFromGoogleDrive(user.picture, auth);
+          }
+
+          // Upload to Drive
+          const response = await uploadToGoogleDrive(req.file, auth);
+          const picture = `https://drive.google.com/thumbnail?id=${response.data.id}&sz=s1080`;
+          await usersModel.updateAccount(email, username, name, genderLowerCase, phone, date_of_birth, picture, shipping_address, role);
+
+          commonHelper.response(res, null, 201, "Profile has been updated");
+        } else {
+          const picture = user.picture;
+          // await usersModel.updateNoPict(email, name, gender, phone, date_of_birth, job_desk, domicile, location, description, role, username);
+          await usersModel.updateAccount(email, username, name, genderLowerCase, phone, date_of_birth, picture, shipping_address, role);
+
+          commonHelper.response(res, null, 201, "Profile has been updated");
+        }
+      } else if (typeof queryUpdate === "undefined" && typeof queryDelete === "string") {
+        await usersModel.deleteAccount(email);
+        commonHelper.response(res, null, 200, "Account has been deleted");
       }
     } catch (error) {
       res.send(createError(404));
@@ -144,11 +136,11 @@ const UserController = {
 
   changeEmail: async (req, res) => {
     try {
-      const email = req.payload.email
-      const emailBody = req.body.email
-      console.log(email + emailBody)
-      await usersModel.changeEmailAccount(email, emailBody)
-      commonHelper.response(res, null, 201, "Email Account has been update, Please Login again")
+      const email = req.payload.email;
+      const emailBody = req.body.email;
+      console.log(email + emailBody);
+      await usersModel.changeEmailAccount(email, emailBody);
+      commonHelper.response(res, null, 201, "Email Account has been update, Please Login again");
     } catch (error) {
       res.send(createError(404));
     }
@@ -156,32 +148,31 @@ const UserController = {
 
   changePassword: async (req, res) => {
     try {
-      const email = req.payload.email
-      const { password } = req.body
+      const email = req.payload.email;
+      const { password } = req.body;
       const saltRounds = 10;
       const passwordNewHash = bcrypt.hashSync(password, saltRounds);
-      console.log(email + ' ' + password + '   ' + passwordNewHash)
-      await usersModel.changePassword(email, passwordNewHash)
-      commonHelper.response(res, null, 200, "Password Account has been update")
+      console.log(email + " " + password + "   " + passwordNewHash);
+      await usersModel.changePassword(email, passwordNewHash);
+      commonHelper.response(res, null, 200, "Password Account has been update");
     } catch (error) {
       res.send(createError(404));
     }
   },
 
   refreshToken: async (req, res) => {
-    const refreshToken = req.body.refreshToken
-    const decoded = jwt.verify(refreshToken, process.env.SECRETE_KEY_JWT)
+    const refreshToken = req.body.refreshToken;
+    const decoded = jwt.verify(refreshToken, process.env.SECRETE_KEY_JWT);
     const payload = {
       email: decoded.email,
-      role: decoded.role
-    }
+      role: decoded.role,
+    };
     const result = {
       token: authHelper.generateToken(payload),
-      refreshToken: authHelper.generateRefreshToken(payload)
-    }
-    commonHelper.response(res, result, 200, 'Refresh Token Success')
+      refreshToken: authHelper.generateRefreshToken(payload),
+    };
+    commonHelper.response(res, result, 200, "Refresh Token Success");
   },
-}
+};
 
-
-module.exports = UserController 
+module.exports = UserController;

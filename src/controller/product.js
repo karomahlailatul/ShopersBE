@@ -2,8 +2,9 @@ const { v4: uuidv4 } = require("uuid");
 const productModel = require("../models/product");
 const createError = require("http-errors");
 const commonHelper = require("../helper/common");
-const client = require("../config/redis");
+// const client = require("../config/redis");
 
+const { authenticateGoogle, uploadToGoogleDrive, deleteFromGoogleDrive } = require("../middlewares/googleDriveService");
 const productController = {
   getPaginationProduct: async (req, res) => {
     try {
@@ -56,19 +57,20 @@ const productController = {
     }
   },
   insertProduct: async (req, res) => {
-    console.log(req.files)
+    // console.log(req.files)
     try {
       const id = uuidv4().toLocaleLowerCase();
-      const PORT = process.env.PORT;
-      const DB_HOST = process.env.DB_HOST;
+      // const PORT = process.env.PORT;
+      // const DB_HOST = process.env.DB_HOST;
       try {
         if (!req.file) throw "Photo Must Include";
       } catch (error) {
         return commonHelper.response(res, null, 404, error);
       }
 
-      const filephoto = req.file.filename;
-      const photo = `http://${DB_HOST}:${PORT}/upload/${filephoto}`;
+      const auth = authenticateGoogle();
+      const response = await uploadToGoogleDrive(req.file, auth);
+      const photo = `https://drive.google.com/thumbnail?id=${response.data.id}&sz=s1080`;
 
       const { name, brand, price, stock, color, size, condition, description, status, category_id, seller_id } = req.body;
 
@@ -103,7 +105,7 @@ const productController = {
   updateProduct: async (req, res) => {
     try {
       const id = req.params.id;
-      console.log(id)
+      // console.log(id)
       const checkProduct = await productModel.selectProduct(id);
       try {
         if (checkProduct.rowCount == 0) throw "Product has not found";
@@ -111,8 +113,8 @@ const productController = {
         return commonHelper.response(res, null, 404, error);
       }
 
-      const PORT = process.env.PORT;
-      const DB_HOST = process.env.DB_HOST;
+      // const PORT = process.env.PORT;
+      // const DB_HOST = process.env.DB_HOST;
 
       if (!req.file) {
 
@@ -142,12 +144,18 @@ const productController = {
 
         await productModel.updateProductNoPhoto(id, namelowerCase, brand, price, stock, color, size, conditionLowerCase, description, statusLowerCase, category_idLowerCase, seller_idLowerCase);
 
-        const result = await productModel.selectProduct(id);
-        client.setEx(`product/${id}`, 60 * 60, JSON.stringify(result.rows));
+        // const result = await productModel.selectProduct(id);
+        // client.setEx(`product/${id}`, 60 * 60, JSON.stringify(result.rows));
 
       } else {
-        const filephoto = req.file.filename;
-        const photo = `http://${DB_HOST}:${PORT}/upload/${filephoto}`;
+        const auth = authenticateGoogle();
+
+        if (checkProduct.photo != null || checkProduct.photo != undefined) {
+          await deleteFromGoogleDrive(checkProduct.photo, auth);
+        }
+
+        const response = await uploadToGoogleDrive(req.file, auth);
+        const photo = `https://drive.google.com/thumbnail?id=${response.data.id}&sz=s1080`;
 
         const { name, brand, price, stock, color, size, condition, description, status, category_id, seller_id } = req.body;
 
@@ -175,8 +183,8 @@ const productController = {
 
         await productModel.updateProduct(id, namelowerCase, brand, price, stock, photo, color, size, conditionLowerCase, description, statusLowerCase, category_idLowerCase, seller_idLowerCase);
 
-        const result = await productModel.selectProduct(id);
-        client.setEx(`product/${id}`, 60 * 60, JSON.stringify(result.rows));
+        // const result = await productModel.selectProduct(id);
+        // client.setEx(`product/${id}`, 60 * 60, JSON.stringify(result.rows));
       }
 
       commonHelper.response(res, null, 201, "Product Update");
