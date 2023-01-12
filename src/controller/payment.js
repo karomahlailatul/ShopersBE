@@ -99,6 +99,13 @@ const paymentController = {
     } catch (error) {
       res.send(createError(404));
     }
+  },
+  test: async (req, res) => {
+    try {
+      commonHelper.response(res, "Test", 200, "payment Deleted");
+    } catch (error) {
+      res.send(createError(404));
+    }
   }
 }
 
